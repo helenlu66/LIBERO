@@ -1,10 +1,11 @@
 from detection.detector import Detector
+from libero.libero.envs.problems.libero_tabletop_manipulation import Libero_Tabletop_Manipulation
 
 class PickPlaceDetector(Detector):
     '''
     Class for detecting the states in the pick place task
     '''
-    def __init__(self, env, return_int=False):
+    def __init__(self, env:Libero_Tabletop_Manipulation, return_int=False):
         super().__init__(env, return_int)
 
         # object names that are used in the domain
@@ -23,7 +24,8 @@ class PickPlaceDetector(Detector):
         ]
         self.object_types = {
             'drawer': ['wooden_cabinet_1_top_region', 'wooden_cabinet_1_middle_region', 'wooden_cabinet_1_bottom_region'],
-            'tabletop-object': ['akita_black_bowl_1', 'akita_black_bowl_2', 'cookies_1', 'glazed_rim_porcelain_ramekin_1', 'plate_1', 'flat_stove_1', 'wooden_cabinet'],
+            'tabletop-object': ['akita_black_bowl_1', 'akita_black_bowl_2', 'cookies_1', 'glazed_rim_porcelain_ramekin_1', 'plate_1', 'flat_stove_1', 'wooden_cabinet_1'],
+            'graspable-object': ['akita_black_bowl_1', 'akita_black_bowl_2', 'cookies_1', 'glazed_rim_porcelain_ramekin_1', 'plate_1'],
             'container': ['wooden_cabinet_1_top_region', 'wooden_cabinet_1_middle_region', 'wooden_cabinet_1_bottom_region'],
             'robot': ['robot0']
         }
@@ -32,7 +34,7 @@ class PickPlaceDetector(Detector):
         self.predicates = {
             'grasped': {
                 'func':self.grasped,
-                'params':['tabletop-object']
+                'params':['graspable-object']
             },
             'on-table': {
                 'func':self.directly_on_table,
@@ -42,22 +44,22 @@ class PickPlaceDetector(Detector):
                 'func':self.on,
                 'params':['tabletop-object', 'tabletop-object']
             },
-            'free': {
-                'func':self.free,
-                'params':['robot']
-            },
-            # 'inside': {
-            #     'func':self.inside,
-            #     'params':['tabletop-object', 'container']
+            # 'free': {
+            #     'func':self.free,
+            #     'params':['robot']
             # },
+            'inside': {
+                'func':self.inside,
+                'params':['tabletop-object', 'container']
+            },
             # 'next-to': {
             #     'func':self.next_to,
             #     'params':['tabletop-object', 'tabletop-object']
             # },
-            # 'table-center':{
-            #     'func':self.table_center,
-            #     'params':['tabletop-object']
-            # },
+            'table-center':{
+                'func':self.table_center,
+                'params':['tabletop-object']
+            },
             'pick-up-target':{
                 'func':self.pick_up_target,
                 'params':['tabletop-object']
@@ -77,7 +79,9 @@ class PickPlaceDetector(Detector):
             bool: True if obj1 is inside obj2
         '''
         assert self._is_type(obj1, 'tabletop-object') and self._is_type(obj2, 'container')
-        #TODO: implement this
+        obj1_state = self.env.object_states_dict[obj1]
+        container_state = self.env.object_states_dict[obj2]
+        return container_state.check_contain(obj1_state)
     
     def next_to(self, obj1:str, obj2:str) -> bool:
         """Check if obj1 is next to obj2.
@@ -130,7 +134,13 @@ class PickPlaceDetector(Detector):
             bool: True if the object is directly on the table                
         '''
         assert self._is_type(tabletop_obj, 'tabletop-object')
-        return self.env.check_on_table(tabletop_obj)
+        obj_state = self.env.object_states_dict[tabletop_obj]
+        table_regions = [region_state for region_state in self.env.object_states_dict.keys() if 'main_table' in region_state]
+        for region in table_regions:
+            region_state = self.env.object_states_dict[region]
+            if region_state.check_ontop(obj_state) or region_state.check_contact(obj_state):
+                return True
+        return False
     
 
     def on(self, obj1:str, obj2:str) -> bool:
@@ -145,7 +155,9 @@ class PickPlaceDetector(Detector):
             bool: True if obj1 is on obj2
         '''
         assert self._is_type(obj1, 'tabletop-object') and self._is_type(obj2, 'tabletop-object')
-        return self.env.check_on(obj1, obj2)
+        obj1_state = self.env.object_states_dict[obj1]
+        obj2_state = self.env.object_states_dict[obj2]
+        return obj2_state.check_ontop(obj1_state)
 
 
     def grasped(self, obj:str) -> bool:
@@ -158,8 +170,10 @@ class PickPlaceDetector(Detector):
         Returns:
             bool: True if the gripper is grasping the object
         '''
-        assert self._is_type(obj, 'tabletop-object')
-        return self.env.check_grasped(obj)
+        assert self._is_type(obj, 'graspable-object')
+        gripper = self.env.robots[0].gripper
+        obj_contact_geoms = self.env.objects_dict[obj].contact_geoms
+        return self.env._check_grasp(gripper, obj_contact_geoms)
 
 
     def free(self, robot:str) -> bool:

@@ -3,6 +3,7 @@ import numpy as np
 from libero.libero import benchmark
 from libero.libero.envs.env_wrapper import ControlEnv
 from libero.libero import benchmark, get_libero_path
+from detection.pick_place_detector import PickPlaceDetector
 
 
 benchmark_dict = benchmark.get_benchmark_dict()
@@ -10,7 +11,7 @@ task_suite_name = "libero_spatial" # can also choose libero_spatial, libero_obje
 task_suite = benchmark_dict[task_suite_name]()
 
 # retrieve a specific task
-task_id = 0
+task_id = 4
 task = task_suite.get_task(task_id)
 task_name = task.name
 task_description = task.language
@@ -33,10 +34,14 @@ init_states = task_suite.get_task_init_states(task_id) # for benchmarking purpos
 init_state_id = 0
 env.set_init_state(init_states[init_state_id])
 
+detector = PickPlaceDetector(env.env, return_int=True)
+
 low, high = env.env.action_spec
 for step in range(10):
     # try random actions
     action = np.random.uniform(low, high)
     obs, reward, done, info = env.step(action)
+    # detect the symbolic states
+    symbolic_state = detector.detect_binary_states()
     env.render()
 env.close()

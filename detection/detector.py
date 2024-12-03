@@ -29,7 +29,7 @@ class Detector:
         else:
             self.obs = self.env.viewer._get_observations() if self.env.viewer_get_obs else self.env._get_observations()
     
-    def get_groundings(self) -> dict:
+    def detect_binary_states(self) -> dict:
         """Returns the groundings for the coffee detector.
 
         Returns:
@@ -37,7 +37,6 @@ class Detector:
         """
         groundings = {}
         for predicate_name, predicate in self.predicates.items():
-            groundings[predicate_name] = {}
             param_list = []
             # e.g. for predicate_name = 'inside', predicate['params'] = ['tabletop_object', 'container']
             for param_type in predicate['params']:
@@ -49,7 +48,7 @@ class Detector:
             for comb in param_combinations:
                 truth_value = callable_func(*comb)
                 predicate_str = f'{predicate_name} {" ".join(comb)}'
-                groundings[predicate_str] = truth_value
+                groundings[predicate_str] = self.r_int(truth_value)
         return groundings
     
     def r_int(self, value):
