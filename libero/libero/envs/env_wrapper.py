@@ -99,6 +99,9 @@ class ControlEnv:
                 continue
 
         return ret
+    
+    def render(self):
+        self.env.render()
 
     def check_success(self):
         return self.env._check_success()
