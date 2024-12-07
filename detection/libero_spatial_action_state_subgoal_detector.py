@@ -29,7 +29,8 @@ class LiberoSpatialActionDetector(Libero10ActionDetector):
             'tabletop-object': ['akita_black_bowl_1', 'akita_black_bowl_2', 'cookies_1', 'glazed_rim_porcelain_ramekin_1', 'plate_1', 'flat_stove_1', 'wooden_cabinet_1'],
             'pickupable-object': ['akita_black_bowl_1', 'akita_black_bowl_2', 'cookies_1', 'glazed_rim_porcelain_ramekin_1', 'plate_1'],
             'container': ['wooden_cabinet_1_top_region', 'wooden_cabinet_1_middle_region', 'wooden_cabinet_1_bottom_region'],
-            'robot': ['robot0']
+            'robot': ['robot0'],
+            'table': ['main_table'],
         }
         # Planning domain predicates
         self.predicates = {

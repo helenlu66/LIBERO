@@ -70,7 +70,8 @@ class ObjectState(BaseObjectState):
         self_position = self.env.sim.data.body_xpos[
             self.env.obj_body_id[self.object_name]
         ]
-        return self_position[0] < other_position[0]
+        
+        return self_position[1] < other_position[1]
     
     def check_right_of(self, other) -> bool:
         """Check whether this object is to the right of the other object.
@@ -98,7 +99,7 @@ class ObjectState(BaseObjectState):
         self_position = self.env.sim.data.body_xpos[
             self.env.obj_body_id[self.object_name]
         ]
-        return self_position[1] < other_position[1]
+        return self_position[0] < other_position[0]
     
     def check_in_front_of(self, other) -> bool:
         """Check whether this object is in front of the other object.

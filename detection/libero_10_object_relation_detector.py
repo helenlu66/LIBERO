@@ -133,7 +133,7 @@ class Libero10ObjectRelationDetector(Detector):
             'right-of':{
                 'func':self.right_of,
                 'params':['tabletop-object', 'tabletop-object']
-            },
+            }, 
             'behind':{
                 'func':self.behind,
                 'params':['tabletop-object', 'tabletop-object']
@@ -141,7 +141,7 @@ class Libero10ObjectRelationDetector(Detector):
             'in-front-of':{
                 'func':self.in_front_of,
                 'params':['tabletop-object', 'tabletop-object']
-            },
+            }, 
 
         }
 
@@ -164,7 +164,7 @@ class Libero10ObjectRelationDetector(Detector):
         return container_state.check_contain(obj1_state)
     
     def left_of(self, obj1:str, obj2:str) -> Union[bool, None]:
-        """Check if obj1 is left of obj2.
+        """Check if obj1 is left of obj2 from the frontview perspective.
 
         Args:
             obj1 (str): the first object
@@ -174,14 +174,16 @@ class Libero10ObjectRelationDetector(Detector):
             bool: True if obj1 is left of obj2
         """
         assert self._is_type(obj1, 'tabletop-object') and self._is_type(obj2, 'tabletop-object')
-        obj1_state = self.env.object_states_dict.get(obj1)
-        obj2_state = self.env.object_states_dict.get(obj2)
-        if obj1_state is None or obj2_state is None:
+        obj1_pos, obj1_half_bounding_box = self._get_object_position_half_bounding_box(obj1)
+        obj2_pos, obj2_half_bounding_box = self._get_object_position_half_bounding_box(obj2)
+        if any([pos is None for pos in [obj1_pos, obj2_pos]]):
             return None
-        return obj1_state.check_left_of(obj2_state)
+        obj1_rightmost = obj1_pos[1] + obj1_half_bounding_box[1]
+        obj2_leftmost = obj2_pos[1] - obj2_half_bounding_box[1]
+        return obj1_rightmost < obj2_leftmost
     
     def right_of(self, obj1:str, obj2:str) -> Union[bool, None]:
-        """Check if obj1 is right of obj2.
+        """Check if obj1 is right of obj2 from the frontview perspective.
 
         Args:
             obj1 (str): the first object
@@ -191,14 +193,17 @@ class Libero10ObjectRelationDetector(Detector):
             bool: True if obj1 is right of obj2
         """
         assert self._is_type(obj1, 'tabletop-object') and self._is_type(obj2, 'tabletop-object')
-        obj1_state = self.env.object_states_dict.get(obj1)
-        obj2_state = self.env.object_states_dict.get(obj2)
-        if obj1_state is None or obj2_state is None:
+        obj1_pos, obj1_half_bounding_box = self._get_object_position_half_bounding_box(obj1)
+        obj2_pos, obj2_half_bounding_box = self._get_object_position_half_bounding_box(obj2)
+        if any([pos is None for pos in [obj1_pos, obj2_pos]]):
             return None
-        return obj1_state.check_right_of(obj2_state)
+        obj1_leftmost = obj1_pos[1] - obj1_half_bounding_box[1]
+        obj2_rightmost = obj2_pos[1] + obj2_half_bounding_box[1]
+        return obj1_leftmost > obj2_rightmost
+    
     
     def behind(self, obj1:str, obj2:str) -> Union[bool, None]:
-        """Check if obj1 is behind obj2.
+        """Check if obj1 is behind obj2 from the frontview perspective.
 
         Args:
             obj1 (str): the first object
@@ -208,14 +213,17 @@ class Libero10ObjectRelationDetector(Detector):
             bool: True if obj1 is behind obj2
         """
         assert self._is_type(obj1, 'tabletop-object') and self._is_type(obj2, 'tabletop-object')
-        obj1_state = self.env.object_states_dict.get(obj1)
-        obj2_state = self.env.object_states_dict.get(obj2)
-        if obj1_state is None or obj2_state is None:
+        obj1_pos, obj1_half_bounding_box = self._get_object_position_half_bounding_box(obj1)
+        obj2_pos, obj2_half_bounding_box = self._get_object_position_half_bounding_box(obj2)
+        if any([pos is None for pos in [obj1_pos, obj2_pos]]):
             return None
-        return obj1_state.check_behind(obj2_state)
+        obj1_frontmost = obj1_pos[0] + obj1_half_bounding_box[0]
+        obj2_backmost = obj2_pos[0] - obj2_half_bounding_box[0]
+        return obj1_frontmost < obj2_backmost
+        
     
     def in_front_of(self, obj1:str, obj2:str) -> Union[bool, None]:
-        """Check if obj1 is in front of obj2.
+        """Check if obj1 is in front of obj2 from the frontview perspective.
 
         Args:
             obj1 (str): the first object
@@ -225,11 +233,13 @@ class Libero10ObjectRelationDetector(Detector):
             Union[bool, None]: True if obj1 is in front of obj2
         """
         assert self._is_type(obj1, 'tabletop-object') and self._is_type(obj2, 'tabletop-object')
-        obj1_state = self.env.object_states_dict.get(obj1)
-        obj2_state = self.env.object_states_dict.get(obj2)
-        if obj1_state is None or obj2_state is None:
+        obj1_pos, obj1_half_bounding_box = self._get_object_position_half_bounding_box(obj1)
+        obj2_pos, obj2_half_bounding_box = self._get_object_position_half_bounding_box(obj2)
+        if any([pos is None for pos in [obj1_pos, obj2_pos]]):
             return None
-        return obj1_state.check_in_front_of(obj2_state)
+        obj1_backmost = obj1_pos[0] - obj1_half_bounding_box[0]
+        obj2_frontmost = obj2_pos[0] + obj2_half_bounding_box[0]
+        return obj1_backmost > obj2_frontmost
     
     def open(self, obj:str) -> Union[bool, None]:
         """Check if the object is open.

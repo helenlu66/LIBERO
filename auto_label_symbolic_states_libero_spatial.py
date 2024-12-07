@@ -3,7 +3,7 @@ import numpy as np
 from libero.libero import benchmark
 from libero.libero.envs.env_wrapper import ControlEnv
 from libero.libero import benchmark, get_libero_path
-from detection.libero_spatial_detector import LiberoSpatialObjectRelationDetector
+from detection.libero_spatial_object_relation_detector import LiberoSpatialObjectRelationDetector
 from detection.libero_spatial_action_state_subgoal_detector import LiberoSpatialActionDetector
 
 

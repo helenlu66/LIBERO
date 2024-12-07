@@ -46,11 +46,11 @@ class Detector:
             param_combinations = list(itertools.product(*param_list))
             callable_func = predicate['func']
             for comb in param_combinations:
+                predicate_str = f'{predicate_name} {" ".join(comb)}'
                 # skip if the same object is used twice
                 if len(set(comb)) < len(comb):
                     continue
                 truth_value = callable_func(*comb)
-                predicate_str = f'{predicate_name} {" ".join(comb)}'
                 groundings[predicate_str] = self.r_int(truth_value)
         return groundings
     
@@ -59,6 +59,43 @@ class Detector:
         if value is None:
             return -1
         return int(value)
+    
+    def _get_env_object(self, obj:str):
+        """Returns the object from the environment.
+
+        Args:
+            obj (str): the object name
+
+        Returns:
+            object: the object from the environment
+        """
+        for env_obj in self.env.objects:
+            if env_obj.name == obj:
+                return env_obj
+        for env_obj in self.env.fixtures: # fixtures are objects that are not movable
+            if env_obj.name == obj:
+                return env_obj
+        return None
+    
+    def _get_object_position_half_bounding_box(self, obj:str) -> Tuple[List[float], List[float]]:
+        """Returns the position and half bounding box of the object.
+
+        Args:
+            obj (str): the object name
+
+        Returns:
+            tuple: the half bounding box position of the object
+        """
+        env_obj = self._get_env_object(obj)
+        if env_obj is None:
+            return None, None
+        bounding_box = env_obj.get_bounding_box_half_size()
+        if env_obj.name == 'wooden_cabinet_1' or env_obj.name == 'white_cabinet_1': # a hack to fix the cabinet position
+            bounding_box = env_obj.get_bounding_box_size() + [0, 0.05, 0]# the cabinet's half bounding box is too small
+        pos = self.env.sim.data.body_xpos[
+            self.env.obj_body_id[obj]
+        ]
+        return pos, bounding_box
     
     def _is_type(self, obj, obj_type):
         """Returns True if the object is of the specified type.
