@@ -1,3 +1,4 @@
+from typing import *
 from detection.detector import Detector
 from libero.libero.envs.problems.libero_tabletop_manipulation import Libero_Tabletop_Manipulation
 
@@ -112,7 +113,7 @@ class Libero10ActionDetector(Detector):
         }
 
 
-    def grasped(self, obj:str) -> bool:
+    def grasped(self, obj:str) -> Union[bool, None]:
         '''
         Check if the gripper is grasping the obj.
 
@@ -124,5 +125,8 @@ class Libero10ActionDetector(Detector):
         '''
         assert self._is_type(obj, 'pickupable-object')
         gripper = self.env.robots[0].gripper
-        obj_contact_geoms = self.env.objects_dict[obj].contact_geoms
+        phys_obj = self.env.objects_dict.get(obj)
+        if phys_obj is None:
+            return None
+        obj_contact_geoms = phys_obj.contact_geoms
         return self.env._check_grasp(gripper, obj_contact_geoms)

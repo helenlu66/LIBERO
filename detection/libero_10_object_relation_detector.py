@@ -96,7 +96,7 @@ class Libero10ObjectRelationDetector(Detector):
                 'wine_bottle_1', 
             ],
 
-            'container': ['white_cabinet_1_top_region', 'white_cabinet_1_middle_region', 'white_cabinet_1_bottom_region', 'microwave_1', 'basket_1', 'desk_caddy_1_back_contain_region', 'desk_caddy_1_front_contain_region', 'desk_caddy_1_left_contain_region', 'desk_caddy_1_right_contain_region'],
+            'container': ['white_cabinet_1_top_region', 'white_cabinet_1_middle_region', 'white_cabinet_1_bottom_region', 'microwave_1_contain_region', 'basket_1_contain_region', 'desk_caddy_1_back_contain_region', 'desk_caddy_1_front_contain_region', 'desk_caddy_1_left_contain_region', 'desk_caddy_1_right_contain_region'],
             'on-off-object': ['flat_stove_1'],
             'robot': ['robot0'],
             'table': ['kitchen_table', 'living_room_table', 'study_table']
