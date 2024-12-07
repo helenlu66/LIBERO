@@ -4,6 +4,7 @@ from libero.libero import benchmark
 from libero.libero.envs.env_wrapper import ControlEnv
 from libero.libero import benchmark, get_libero_path
 from detection.libero_10_object_prescence_detector import Libero10ObjectDetector
+from detection.libero_10_object_relation_detector import Libero10ObjectRelationDetector
 
 
 benchmark_dict = benchmark.get_benchmark_dict()
@@ -38,6 +39,7 @@ init_state_id = 0
 env.set_init_state(init_states[init_state_id])
 
 object_detector = Libero10ObjectDetector(env.env, return_int=True)
+object_relation_detector = Libero10ObjectRelationDetector(env.env, return_int=True)
 
 low, high = env.env.action_spec
 for step in range(10):
@@ -46,5 +48,6 @@ for step in range(10):
     obs, reward, done, info = env.step(action)
     # detect the symbolic states
     object_prescence = object_detector.detect_binary_states()
+    object_relations = object_relation_detector.detect_binary_states()
     env.render()
 env.close()

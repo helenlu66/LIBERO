@@ -55,6 +55,61 @@ class ObjectState(BaseObjectState):
         object_1 = self.env.get_object(self.object_name)
         object_2 = self.env.get_object(other.object_name)
         return self.env.check_contact(object_1, object_2)
+    
+    def check_left_of(self, other) -> bool:
+        """Check whether this object is to the left of the other object.
+
+        Args:
+            other (ObjectState): The other object.
+        Returns:
+            bool: True if this object is to the left of the other object.
+        """
+        other_position = self.env.sim.data.body_xpos[
+            self.env.obj_body_id[other.object_name]
+        ]
+        self_position = self.env.sim.data.body_xpos[
+            self.env.obj_body_id[self.object_name]
+        ]
+        return self_position[0] < other_position[0]
+    
+    def check_right_of(self, other) -> bool:
+        """Check whether this object is to the right of the other object.
+
+        Args:
+            other (ObjectState): The other object.
+
+        Returns:
+            bool: True if this object is to the right of the other object.
+        """
+        return other.check_left_of(self)
+    
+    def check_behind(self, other) -> bool:
+        """Check whether this object is behind the other object.
+
+        Args:
+            other (ObjectState): The other object.
+
+        Returns:
+            bool: True if this object is behind the other object.
+        """
+        other_position = self.env.sim.data.body_xpos[
+            self.env.obj_body_id[other.object_name]
+        ]
+        self_position = self.env.sim.data.body_xpos[
+            self.env.obj_body_id[self.object_name]
+        ]
+        return self_position[1] < other_position[1]
+    
+    def check_in_front_of(self, other) -> bool:
+        """Check whether this object is in front of the other object.
+
+        Args:
+            other (ObjectState): The other object.
+
+        Returns:
+            bool: True if this object is in front of the other object.
+        """
+        return other.check_behind(self)
 
     def check_contain(self, other):
         object_1 = self.env.get_object(self.object_name)

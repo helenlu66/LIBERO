@@ -46,13 +46,19 @@ class Detector:
             param_combinations = list(itertools.product(*param_list))
             callable_func = predicate['func']
             for comb in param_combinations:
+                # skip if the same object is used twice
+                if len(set(comb)) < len(comb):
+                    continue
                 truth_value = callable_func(*comb)
                 predicate_str = f'{predicate_name} {" ".join(comb)}'
                 groundings[predicate_str] = self.r_int(truth_value)
         return groundings
     
     def r_int(self, value):
-        return int(value) if self.return_int else value
+        # True is 1, False is 0, None is -1
+        if value is None:
+            return -1
+        return int(value)
     
     def _is_type(self, obj, obj_type):
         """Returns True if the object is of the specified type.
