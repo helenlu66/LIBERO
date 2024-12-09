@@ -52,6 +52,8 @@ class Detector:
                     continue
                 truth_value = callable_func(*comb)
                 groundings[predicate_str] = self.r_int(truth_value)
+        # sort the keys of the dictionary
+        groundings = dict(sorted(groundings.items()))
         return groundings
     
     def r_int(self, value):
