@@ -1,6 +1,7 @@
 from typing import *
 from detection.detector import Detector
 from libero.libero.envs.problems.libero_tabletop_manipulation import Libero_Tabletop_Manipulation
+from libero.libero.envs.predicates.base_predicates import *
 
 class LiberoObjectObjectRelationDetector(Detector):
     '''
@@ -171,22 +172,30 @@ class LiberoObjectObjectRelationDetector(Detector):
             floor_obj (str): The floor object
             
         Returns:
-            bool: True if the object is directly on the table              
+            bool: True if the object is directly on the floor              
         '''
-        def find_floor_regions():
-            table_regions = [region_state for region_state in self.env.object_states_dict.keys() if any(floor in region_state for floor in self.object_types['floor'])]
-            return table_regions
-        
-        assert self._is_type(floor_obj, 'floor-object')
-        obj_state = self.env.object_states_dict.get(floor_obj)
-        if obj_state is None:
+        # get the lower bound of the object's half bounding box
+        obj_pos, obj_half_bounding_box = self._get_object_position_half_bounding_box(floor_obj)
+        if obj_pos is None or obj_half_bounding_box is None:
             return None
-        table_regions = find_floor_regions()
-        # see if the object is in any of the detectable table regions. These are the regions in which objects are initialized on the table. They don't cover the entire table, but they are good enough for this purpose since objects stay in their table regions during successful episodes and we only collect successful episodes.
-        for region in table_regions:
-            region_state = self.env.object_states_dict[region]
-            if region_state.check_ontop(obj_state) or region_state.check_contact(obj_state):
-                return True
+        lower_bound = obj_pos[2] - obj_half_bounding_box[2]
+        # if the lower bound is less than 0.01, then the object is on the table
+        if lower_bound <= 0.035:
+            return True
+        # def find_floor_regions():
+        #     floor_regions = [region_state for region_state in self.env.object_states_dict.keys() if any(floor in region_state for floor in self.object_types['floor'])]
+        #     return floor_regions
+        
+        # assert self._is_type(floor_obj, 'floor-object')
+        # obj_state = self.env.object_states_dict.get(floor_obj)
+        # if obj_state is None:
+        #     return None
+        # floor_region = find_floor_regions()
+        # # see if the object is in any of the detectable table regions. These are the regions in which objects are initialized on the table. They don't cover the entire table, but they are good enough for this purpose since objects stay in their table regions during successful episodes and we only collect successful episodes.
+        # for region in floor_region:
+        #     region_state = self.env.object_states_dict[region]
+        #     if On()(obj_state, region_state):
+        #         return True
         return False
     
 
