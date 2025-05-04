@@ -211,6 +211,19 @@ class SiteObjectState(BaseObjectState):
             self.env.sim.data.get_site_xmat(self.object_name)
         )
         return {"pos": object_pos, "quat": object_quat}
+    
+    def check_above_box(self, other):
+        this_object = self.env.object_sites_dict[self.object_name]
+        this_object_position = self.env.sim.data.get_site_xpos(self.object_name)
+        this_object_mat = self.env.sim.data.get_site_xmat(self.object_name)
+
+        other_object = self.env.get_object(other.object_name)
+        other_object_position = self.env.sim.data.body_xpos[
+            self.env.obj_body_id[other.object_name]
+        ]
+        return this_object.above_box(
+            this_object_position, this_object_mat, other_object_position
+        )
 
     def check_contain(self, other):
         this_object = self.env.object_sites_dict[self.object_name]

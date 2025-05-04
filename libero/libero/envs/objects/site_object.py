@@ -31,6 +31,22 @@ class SiteObject:
         self.rgba = rgba
         self.site_type = site_type
         self.object_properties = object_properties
+        
+    def above_box(self, this_position, this_mat, other_position):
+        """Checks whether the object is above this SiteObject. Useful when dropping an object into a container.
+
+        Args:
+            this_position: 3D position of this SiteObject
+            other_position: 3D position of object to test for insertio
+        """
+        total_size = np.abs(this_mat @ self.size)
+
+        lb = this_position - total_size
+
+        lb[2] -= 0.01
+        # print(np.all(other_position > lb), np.all(other_position < ub))
+        # print(lb, other_position, ub)
+        return np.all(other_position > lb)
 
     def in_box(self, this_position, this_mat, other_position):
         """

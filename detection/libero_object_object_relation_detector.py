@@ -84,6 +84,26 @@ class LiberoObjectObjectRelationDetector(Detector):
             return None
         return container_state.check_contain(obj1_state)
     
+    def check_ontop_container(self, pickupable_obj:str, container_obj:str) -> Union[bool, None]:
+        '''
+        Check if the pickupable object is on top of the container object.
+        
+        Args:
+            pickupable_obj (str): The pickupable object
+            container_obj (str): The container object
+            
+        Returns:
+            bool: True if the pickupable object is on top of the container object, ready to be dropped
+        '''
+        assert self._is_type(pickupable_obj, 'pickupable-object') and self._is_type(container_obj, 'container')
+        pickupable_obj_state = self.env.object_states_dict.get(pickupable_obj)
+        container_obj_state = self.env.object_states_dict.get(container_obj)
+        if pickupable_obj_state is None or container_obj_state is None:
+            return None
+        # get the position of the pickupable object
+        container_obj_state.check_above_box(pickupable_obj_state)
+
+    
     def left_of(self, obj1:str, obj2:str) -> Union[bool, None]:
         """Check if obj1 is left of obj2 from the frontview perspective.
 
@@ -161,8 +181,7 @@ class LiberoObjectObjectRelationDetector(Detector):
         obj1_backmost = obj1_pos[0] - obj1_half_bounding_box[0]
         obj2_frontmost = obj2_pos[0] + obj2_half_bounding_box[0]
         return obj1_backmost > obj2_frontmost
-    
-    
+
 
     def directly_on_floor(self, floor_obj:str) -> Union[bool, None]:
         '''
