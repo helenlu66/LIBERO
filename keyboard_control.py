@@ -1,27 +1,15 @@
 import os
 import numpy as np
-# Set environment variables BEFORE any other imports
-os.environ['MUJOCO_GL'] = 'glfw'  # Use GLFW for GUI windows
-os.environ['DISPLAY'] = ':1'      # Your X11 display
-# Don't disable CUDA - let it handle GPU acceleration
-# os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 from libero.libero import benchmark
 from libero.libero.envs.env_wrapper import ControlEnv
 from robosuite.wrappers import VisualizationWrapper
-from robosuite import load_controller_config
 from robosuite.utils.input_utils import input2action
 from libero.libero import benchmark, get_libero_path
-from detection.libero_spatial_object_relation_detector import LiberoSpatialObjectRelationDetector
-from detection.libero_spatial_action_state_subgoal_detector import LiberoSpatialActionDetector
-# Set environment variables BEFORE any other imports
-# os.environ['MUJOCO_GL'] = 'osmesa'
-# os.environ['PYOPENGL_PLATFORM'] = 'osmesa'
-# Disable CUDA for rendering to avoid conflicts
-# os.environ['CUDA_VISIBLE_DEVICES'] = ''
+from detection.libero_10_subgoal_detector import Libero10SubgoalDetector
 
 benchmark_dict = benchmark.get_benchmark_dict()
-task_suite_name = "libero_goal" # can also choose libero_spatial, libero_object, etc.
+task_suite_name = "libero_10" # can also choose libero_spatial, libero_object, etc.
 task_suite = benchmark_dict[task_suite_name]()
 # print all tasks in the suite
 for id, task in enumerate(task_suite.tasks):
@@ -51,14 +39,15 @@ init_states = task_suite.get_task_init_states(task_id) # for benchmarking purpos
 init_state_id = 0
 env.set_init_state(init_states[init_state_id])
 
-object_relations_detector = LiberoSpatialObjectRelationDetector(env.env, return_int=True)
-action_detector = LiberoSpatialActionDetector(env.env, return_int=True)
+# object_relations_detector = LiberoSpatialObjectRelationDetector(env.env, return_int=True)
+# action_detector = LiberoSpatialActionDetector(env.env, return_int=True)
+subgoal_detector = Libero10SubgoalDetector(env, return_int=True)
+print('number of subgoals: ', subgoal_detector.detect_num_subgoals())
 # keyboard control
 from robosuite.devices import Keyboard
 wrapped_env = VisualizationWrapper(env.env, indicator_configs=None)
 device = Keyboard(pos_sensitivity=1.0, rot_sensitivity=1.0)
 wrapped_env.viewer.add_keypress_callback(device.on_press)
-wrapped_env = env.env
 
 # Setup printing options for numbers
 np.set_printoptions(formatter={"float": lambda x: "{0:0.3f}".format(x)})
@@ -68,8 +57,8 @@ while True:
     # Reset the environment
     obs = wrapped_env.reset()
     camera_id = 2
-    print(env.sim.model.camera_names)
-    print(env.sim.model.camera_names[camera_id])
+    print(wrapped_env.sim.model.camera_names)
+    print(wrapped_env.sim.model.camera_names[camera_id])
     wrapped_env.viewer.set_camera(camera_id=camera_id)
     wrapped_env.render()
 
@@ -112,20 +101,12 @@ while True:
 
         # Step through the simulation and render
         obs, reward, done, *_ = wrapped_env.step(action)
-        object_relations = object_relations_detector.detect_binary_states()
-        action_states = action_detector.detect_binary_states()
+        # object_relations = object_relations_detector.detect_binary_states()
+        # action_states = action_detector.detect_binary_states()
+        subgoals = subgoal_detector.detect_subgoal_successes()
+        print('subgoals: ', subgoals)
         
         # print('action: ', action)
         # print('reward: ', reward)
         # print(obs)
         wrapped_env.render()
-
-# for step in range(10):
-#     # try random actions
-#     action = np.random.uniform(low, high)
-#     obs, reward, done, info = env.step(action)
-#     # detect the symbolic states
-#     object_relations = object_relations_detector.detect_binary_states()
-#     action_states = action_detector.detect_binary_states()
-#     env.render()
-# env.close()
